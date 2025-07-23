@@ -29,25 +29,30 @@ app.get('/api/hello', function(req, res) {
 
 app.post("/api/shorturl", (req, res) => {
   const originURL = req.body.url;
+
+  if (!/^https?:\/\/.+/i.test(originURL)) {
+    return res.json({ error: "invalid url" });
+  }
+  
   let hostname;
   try {
-    hostname = urlParser.parse(originURL).hostname;
+    hostname = urlParser.parse(originURL.toString()).hostname;
   } catch (error) {
     return res.json({
-      error: "Invalid URL"
+      error: "invalid url"
     })
   }
 
   dns.lookup(hostname, (err) => {
     if (err) {
       return res.json({
-        error: "Invalid URL"
+        error: "invalid url"
       })
     }
     else {
       const shorten = id++;
       urlDB[shorten] = originURL;
-      res.json({ originURL, shorten })
+      res.json({ original_url: originURL, short_url: shorten })
     }
   })
 })
@@ -60,7 +65,7 @@ app.get("/api/shorturl/:short_url", (req, res) => {
   }
   else {
     res.json({
-      error: "Invalid URL"
+      error: "invalid url"
     })
   }
 })
